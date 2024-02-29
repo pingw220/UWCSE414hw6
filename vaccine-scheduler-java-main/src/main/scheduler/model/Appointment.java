@@ -8,27 +8,13 @@ import java.util.Arrays;
 
 public class Appointment {
 
-    private final int ID;
+    private int ID;
     private final String pname;
     private final String vname;
     private final String ctime;
     private final String cname;
 
     private Appointment(AppointmentBuilder builder) {
-        ConnectionManager cm = new ConnectionManager();
-        Connection con = cm.createConnection();
-        int id = 0;
-        try {
-            String setID = "SELECT IDENT_CURRENT ('Appointments') AS ID;";
-            PreparedStatement statement = con.prepareStatement(setID);
-            ResultSet resultSet = statement.executeQuery();
-            if (resultSet.next()) { // Move cursor to the first row
-                id = resultSet.getInt("ID");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        this.ID = id;
         this.pname = builder.pname;
         this.vname = builder.vname;
         this.ctime = builder.ctime;
@@ -61,6 +47,16 @@ public class Appointment {
             statement.setString(3, ctime);
             statement.setString(4, cname);
             statement.executeUpdate();
+            try {
+                String setID = "SELECT IDENT_CURRENT ('Appointments') AS ID;";
+                statement = con.prepareStatement(setID);
+                ResultSet resultSet = statement.executeQuery();
+                if (resultSet.next()) { // Move cursor to the first row
+                    ID = resultSet.getInt("ID");
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         } catch (SQLException e) {
             throw new SQLException();
         } finally {

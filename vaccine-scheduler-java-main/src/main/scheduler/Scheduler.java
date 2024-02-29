@@ -77,7 +77,7 @@ public class Scheduler {
             } else if (operation.equals("upload_availability")) {
                 uploadAvailability(tokens);
             } else if (operation.equals("cancel")) {
-                // cancel(tokens);
+                cancel(tokens);
             } else if (operation.equals("add_doses")) {
                 addDoses(tokens);
             } else if (operation.equals("show_appointments")) {
@@ -355,8 +355,8 @@ public class Scheduler {
                 } else {
                     String pname = currentPatient.getUsername();
                     Appointment appointment = new Appointment.AppointmentBuilder(pname, name, date, cname).build();
-                    int ID = appointment.getID();
                     appointment.saveToDB();
+                    int ID = appointment.getID();
                     String getAppointment = "SELECT ID FROM Appointments WHERE ID = ?;";
                     statement = con.prepareStatement(getAppointment);
                     statement.setInt(1, ID);
@@ -454,57 +454,49 @@ public class Scheduler {
             return;
         }
 
-        int ID =  Integer.parseInt(tokens[1]);
+        int ID = Integer.parseInt(tokens[1]);
 
         ConnectionManager cm = new ConnectionManager();
         Connection con = cm.createConnection();
 
-        String getAppointment = "SELECT vname, cname, ctime FROM Appointments WHERE ID = ?;";
+        String getAppointment = "SELECT vname, cname, ctime FROM Appointments WHERE ID = ? AND (cname = ? OR pname = ?);";
         PreparedStatement statement;
         String username = "", vname = "";
-        String date = "";
+        Date date;
         try {
             statement = con.prepareStatement(getAppointment);
             statement.setInt(1, ID);
+            if(currentCaregiver == null) {
+                statement.setString(3, currentPatient.getUsername());
+                statement.setString(2, currentPatient.getUsername());
+            } else {
+                statement.setString(2, currentCaregiver.getUsername());
+                statement.setString(3, currentCaregiver.getUsername());
+            }
             ResultSet resultSet = statement.executeQuery();
-            username = resultSet.getString("cname");
-            date = resultSet.getString("ctime");
-            vname = resultSet.getString("vname");
-        } catch (SQLException e) {
-            System.out.println("Please try again");
-            e.printStackTrace();
-        }
+            if(resultSet.next()) {
+                username = resultSet.getString("cname");
+                date = resultSet.getDate("ctime");
+                vname = resultSet.getString("vname");
+            } else {
+                System.out.println("Wrong User");
+                return;
+            }
 
-        Vaccine vaccine = null;
-        try {
-            vaccine = new Vaccine.VaccineGetter(vname).get();
-        } catch (SQLException e) {
-            System.out.println("Please try again");
-            e.printStackTrace();
-        }
-        try {
+            Vaccine vaccine = new Vaccine.VaccineGetter(vname).get();
             vaccine.increaseAvailableDoses(1);
-        } catch (SQLException e) {
-            System.out.println("Please try again");
-            e.printStackTrace();
-        }
 
-        String deleteAvailability = "UPDATE Availabilities SET availability = 1 WHERE Username = ? AND Time = ?;";
-        try {
+            String deleteAvailability = "UPDATE Availabilities SET availability = 1 WHERE Username = ? AND Time = ?;";
             statement = con.prepareStatement(deleteAvailability);
             statement.setString(1, username);
-            Date d = Date.valueOf(date);
-            statement.setDate(2, d);
+            statement.setDate(2, date);
             statement.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
 
-        getAppointment = "DELETE FROM Appointments WHERE ID = ?;";
-        try {
+            getAppointment = "DELETE FROM Appointments WHERE ID = ?;";
             statement = con.prepareStatement(getAppointment);
             statement.setInt(1, ID);
             statement.executeUpdate();
+            System.out.println("Cancel Successfully");
         } catch (SQLException e) {
             System.out.println("Please try again");
             e.printStackTrace();
