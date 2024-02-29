@@ -28,24 +28,24 @@ public class Scheduler {
         // printing greetings text
         System.out.println();
         System.out.println("Welcome to the COVID-19 Vaccine Reservation Scheduling Application!");
-        System.out.println("*** Please enter one of the following commands ***");
-        System.out.println("> create_patient <username> <password>");  //TODO: implement create_patient (Part 1)
-        System.out.println("> create_caregiver <username> <password>");
-        System.out.println("> login_patient <username> <password>");  // TODO: implement login_patient (Part 1)
-        System.out.println("> login_caregiver <username> <password>");
-        System.out.println("> search_caregiver_schedule <date>");  // TODO: implement search_caregiver_schedule (Part 2)
-        System.out.println("> reserve <date> <vaccine>");  // TODO: implement reserve (Part 2)
-        System.out.println("> upload_availability <date>");
-        System.out.println("> cancel <appointment_id>");  // TODO: implement cancel (extra credit)
-        System.out.println("> add_doses <vaccine> <number>");
-        System.out.println("> show_appointments");  // TODO: implement show_appointments (Part 2)
-        System.out.println("> logout");  // TODO: implement logout (Part 2)
-        System.out.println("> quit");
-        System.out.println();
 
         // read input from user
         BufferedReader r = new BufferedReader(new InputStreamReader(System.in));
         while (true) {
+            System.out.println("*** Please enter one of the following commands ***");
+            System.out.println("> create_patient <username> <password>");  //TODO: implement create_patient (Part 1)
+            System.out.println("> create_caregiver <username> <password>");
+            System.out.println("> login_patient <username> <password>");  // TODO: implement login_patient (Part 1)
+            System.out.println("> login_caregiver <username> <password>");
+            System.out.println("> search_caregiver_schedule <date>");  // TODO: implement search_caregiver_schedule (Part 2)
+            System.out.println("> reserve <date> <vaccine>");  // TODO: implement reserve (Part 2)
+            System.out.println("> upload_availability <date>");
+            System.out.println("> cancel <appointment_id>");  // TODO: implement cancel (extra credit)
+            System.out.println("> add_doses <vaccine> <number>");
+            System.out.println("> show_appointments");  // TODO: implement show_appointments (Part 2)
+            System.out.println("> logout");  // TODO: implement logout (Part 2)
+            System.out.println("> quit");
+            System.out.println();
             System.out.print("> ");
             String response = "";
             try {
@@ -77,7 +77,7 @@ public class Scheduler {
             } else if (operation.equals("upload_availability")) {
                 uploadAvailability(tokens);
             } else if (operation.equals("cancel")) {
-                cancel(tokens);
+                // cancel(tokens);
             } else if (operation.equals("add_doses")) {
                 addDoses(tokens);
             } else if (operation.equals("show_appointments")) {
@@ -95,29 +95,31 @@ public class Scheduler {
 
     private static void createPatient(String[] tokens) {
         // TODO: Part 1
-        // create_caregiver <username> <password>
-        // check 1: the length for tokens need to be exactly 3 to include all information (with the operation name)
+        // create_patient <username> <password>
+        // check: the length for tokens need to be exactly 3 to include all information (with the operation name)
         if (tokens.length != 3) {
-            System.out.println("Failed to create user.");
+            System.out.println("Create patient failed");
             return;
         }
+
         String username = tokens[1];
         String password = tokens[2];
-        // check 2: check if the username has been taken already
+
+        // check: check if the username has been taken already
         if (usernameExistsPatient(username)) {
             System.out.println("Username taken, try again!");
             return;
         }
+
         byte[] salt = Util.generateSalt();
         byte[] hash = Util.generateHash(password, salt);
-        // create the caregiver
+
         try {
             Patient patient = new Patient.PatientBuilder(username, salt, hash).build();
-            // save to caregiver information to our database
             patient.saveToDB();
             System.out.println("Created user " + username);
         } catch (SQLException e) {
-            System.out.println("Failed to create user.");
+            System.out.println("Create patient failed");
             e.printStackTrace();
         }
     }
@@ -126,16 +128,19 @@ public class Scheduler {
         // create_caregiver <username> <password>
         // check 1: the length for tokens need to be exactly 3 to include all information (with the operation name)
         if (tokens.length != 3) {
-            System.out.println("Create patient failed");
+            System.out.println("Create caregiver failed");
             return;
         }
+
         String username = tokens[1];
         String password = tokens[2];
+
         // check 2: check if the username has been taken already
         if (usernameExistsCaregiver(username)) {
             System.out.println("Username taken, try again!");
             return;
         }
+
         byte[] salt = Util.generateSalt();
         byte[] hash = Util.generateHash(password, salt);
         // create the caregiver
@@ -145,7 +150,7 @@ public class Scheduler {
             caregiver.saveToDB();
             System.out.println("Created user " + username);
         } catch (SQLException e) {
-            System.out.println("Create patient failed");
+            System.out.println("Create caregiver failed");
             e.printStackTrace();
         }
     }
@@ -192,8 +197,15 @@ public class Scheduler {
 
     private static void loginPatient(String[] tokens) {
         // TODO: Part 1
+        // check: the length for tokens need to be exactly 3 to include all information (with the operation name)
+        if (tokens.length != 3) {
+            System.out.println("Login patient failed");
+            return;
+        }
+
         String username = tokens[1];
         String password = tokens[2];
+
         // check if the username exist
         if (!usernameExistsPatient(username)) {
             System.out.println("Login patient failed");
@@ -204,11 +216,6 @@ public class Scheduler {
         // check: if someone's already logged-in, they need to log out first
         if (currentPatient != null || currentPatient != null) {
             System.out.println("User already logged in, try again");
-            return;
-        }
-        // check: the length for tokens need to be exactly 3 to include all information (with the operation name)
-        if (tokens.length != 3) {
-            System.out.println("Login patient failed");
             return;
         }
 
@@ -230,22 +237,22 @@ public class Scheduler {
 
     private static void loginCaregiver(String[] tokens) {
         // login_caregiver <username> <password>
+
+        if (tokens.length != 3) {
+            System.out.println("Login failed.");
+            return;
+        }
+
         String username = tokens[1];
         String password = tokens[2];
 
-        // check if the username exist
         if (!usernameExistsCaregiver(username)) {
             System.out.println("Login failed.");
             return;
         }
-        // check 1: if someone's already logged-in, they need to log out first
+
         if (currentCaregiver != null || currentPatient != null) {
             System.out.println("User already logged in.");
-            return;
-        }
-        // check 2: the length for tokens need to be exactly 3 to include all information (with the operation name)
-        if (tokens.length != 3) {
-            System.out.println("Login failed.");
             return;
         }
 
@@ -276,7 +283,7 @@ public class Scheduler {
         ConnectionManager cm = new ConnectionManager();
         Connection con = cm.createConnection();
 
-        String getCaregiver = "SELECT Username FROM Availabilities WHERE Time = ?;";
+        String getCaregiver = "SELECT Username FROM Availabilities WHERE Time = ? AND availability = 1 ORDER BY Username ASC;";
         String getVaccine = "SELECT Name, Doses FROM Vaccines;";
         try {
             PreparedStatement statement = con.prepareStatement(getCaregiver);
@@ -301,69 +308,90 @@ public class Scheduler {
 
     private static void reserve(String[] tokens) {
         // TODO: Part 2
-        String date = tokens[1];
-        String name = tokens[2];
 
         if (currentPatient == null && currentCaregiver == null) {
             System.out.println("Please login first");
             return;
         }
+
         if (currentCaregiver != null) {
             System.out.println("Please login as a patient");
             return;
         }
+
+        if (tokens.length != 3) {
+            System.out.println("Please try again");
+            return;
+        }
+
+        String date = tokens[1];
+        String name = tokens[2];
+
         ConnectionManager cm = new ConnectionManager();
         Connection con = cm.createConnection();
 
-        String getAvailability = "SELECT Username FROM Availabilities WHERE Time = ?;";
-        System.out.println("h1");
+        String getAvailability = "SELECT Username FROM Availabilities WHERE Time = ? AND availability = 1;";
 
         try {
             PreparedStatement statement = con.prepareStatement(getAvailability);
             statement.setString(1, date);
             ResultSet resultSet = statement.executeQuery();
-            System.out.println("h2");
 
             if (!resultSet.next()) {
                 System.out.println("No caregiver is available");
+                return;
             }
-            System.out.println("h3");
             String cname = resultSet.getString("Username");
 
             String getVaccine = "SELECT Doses FROM Vaccines WHERE Name = ?;";
             statement = con.prepareStatement(getVaccine);
             statement.setString(1, name);
             resultSet = statement.executeQuery();
-            System.out.println("h4");
 
             if (resultSet.next()) {
-                System.out.println("h5");
                 int count = resultSet.getInt("Doses");
                 if (count == 0) {
                     System.out.println("Not enough available doses");
                 } else {
                     String pname = currentPatient.getUsername();
-                    System.out.println("h11");
                     Appointment appointment = new Appointment.AppointmentBuilder(pname, name, date, cname).build();
-                    System.out.println("h13");
                     int ID = appointment.getID();
-                    System.out.println("h14");
-                            // save to caregiver information to our database
                     appointment.saveToDB();
                     String getAppointment = "SELECT ID FROM Appointments WHERE ID = ?;";
-                    System.out.println("h12");
                     statement = con.prepareStatement(getAppointment);
                     statement.setInt(1, ID);
-                    resultSet = statement.executeQuery();
+                    statement.executeQuery();
                     System.out.println("Appointment ID " + ID + ", Caregiver username " + cname);
+
+                    Vaccine vaccine = null;
+                    try {
+                        vaccine = new Vaccine.VaccineGetter(name).get();
+                    } catch (SQLException e) {
+                        System.out.println("Please try again");
+                        e.printStackTrace();
+                    }
+                    try {
+                        vaccine.decreaseAvailableDoses(1);
+                    } catch (SQLException e) {
+                        System.out.println("Please try again");
+                        e.printStackTrace();
+                    }
+
+                    String deleteAvailability = "UPDATE Availabilities SET availability = 0 WHERE Username = ? AND Time = ?;";
+                    try {
+                        statement = con.prepareStatement(deleteAvailability);
+                        statement.setString(1, cname);
+                        Date d = Date.valueOf(date);
+                        statement.setDate(2, d);
+                        statement.executeUpdate();
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
                 }
             } else {
-                System.out.println("h6");
                 System.out.println("Please try again");
-                return;
             }
         } catch (SQLException e) {
-            System.out.println("h7");
             System.out.println("Please try again");
             e.printStackTrace();
         }
@@ -382,6 +410,25 @@ public class Scheduler {
             return;
         }
         String date = tokens[1];
+
+        ConnectionManager cm = new ConnectionManager();
+        Connection con = cm.createConnection();
+
+        String getCaregiver = "SELECT * FROM Availabilities WHERE Username = ? AND Time = ?;";
+        try {
+            PreparedStatement statement = con.prepareStatement(getCaregiver);
+            statement.setString(1, currentCaregiver.getUsername());
+            statement.setString(2, date);
+            ResultSet resultSet = statement.executeQuery();
+            if(resultSet.next()) {
+                System.out.println("Availability already uploaded!");
+                return;
+            }
+        } catch (SQLException e) {
+            System.out.println("Please try again");
+            e.printStackTrace();
+        }
+
         try {
             Date d = Date.valueOf(date);
             currentCaregiver.uploadAvailability(d);
@@ -396,19 +443,66 @@ public class Scheduler {
 
     private static void cancel(String[] tokens) {
         // TODO: Extra credit
-        int ID =  Integer.parseInt(tokens[1]);
+
+        if(tokens.length != 2) {
+            System.out.println("Please try again");
+            return;
+        }
 
         if (currentCaregiver == null && currentPatient == null) {
             System.out.println("Please login first");
             return;
         }
 
+        int ID =  Integer.parseInt(tokens[1]);
+
         ConnectionManager cm = new ConnectionManager();
         Connection con = cm.createConnection();
 
-        String getAppointment = "DELETE FROM Appointments WHERE ID = ?;";
+        String getAppointment = "SELECT vname, cname, ctime FROM Appointments WHERE ID = ?;";
+        PreparedStatement statement;
+        String username = "", vname = "";
+        String date = "";
         try {
-            PreparedStatement statement = con.prepareStatement(getAppointment);
+            statement = con.prepareStatement(getAppointment);
+            statement.setInt(1, ID);
+            ResultSet resultSet = statement.executeQuery();
+            username = resultSet.getString("cname");
+            date = resultSet.getString("ctime");
+            vname = resultSet.getString("vname");
+        } catch (SQLException e) {
+            System.out.println("Please try again");
+            e.printStackTrace();
+        }
+
+        Vaccine vaccine = null;
+        try {
+            vaccine = new Vaccine.VaccineGetter(vname).get();
+        } catch (SQLException e) {
+            System.out.println("Please try again");
+            e.printStackTrace();
+        }
+        try {
+            vaccine.increaseAvailableDoses(1);
+        } catch (SQLException e) {
+            System.out.println("Please try again");
+            e.printStackTrace();
+        }
+
+        String deleteAvailability = "UPDATE Availabilities SET availability = 1 WHERE Username = ? AND Time = ?;";
+        try {
+            statement = con.prepareStatement(deleteAvailability);
+            statement.setString(1, username);
+            Date d = Date.valueOf(date);
+            statement.setDate(2, d);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        getAppointment = "DELETE FROM Appointments WHERE ID = ?;";
+        try {
+            statement = con.prepareStatement(getAppointment);
             statement.setInt(1, ID);
             statement.executeUpdate();
         } catch (SQLException e) {

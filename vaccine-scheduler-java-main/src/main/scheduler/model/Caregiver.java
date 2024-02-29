@@ -58,7 +58,7 @@ public class Caregiver {
         ConnectionManager cm = new ConnectionManager();
         Connection con = cm.createConnection();
 
-        String addAvailability = "INSERT INTO Availabilities VALUES (? , ?)";
+        String addAvailability = "INSERT INTO Availabilities VALUES (? , ?, 1)";
         try {
             PreparedStatement statement = con.prepareStatement(addAvailability);
             statement.setDate(1, d);

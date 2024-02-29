@@ -8,6 +8,7 @@ CREATE TABLE Caregivers (
 CREATE TABLE Availabilities (
     Time date,
     Username varchar(255) REFERENCES Caregivers,
+    availability BIT,
     PRIMARY KEY (Time, Username)
 );
 
